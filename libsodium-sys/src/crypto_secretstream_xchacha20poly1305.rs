@@ -7,19 +7,19 @@ pub const crypto_secretstream_xchacha20poly1305_KEYBYTES: usize = 32;
 pub const crypto_stream_chacha20_ietf_KEYBYTES: usize = 32;
 pub const crypto_stream_chacha20_ietf_NONCEBYTES: usize = 12;
 
-pub const crypto_secretstream_xchacha20poly1305_TAG_MESSAGE: usize = 0;
-pub const crypto_secretstream_xchacha20poly1305_TAG_PUSH: usize = 1;
-pub const crypto_secretstream_xchacha20poly1305_TAG_REKEY: usize = 2;
-pub const crypto_secretstream_xchacha20poly1305_TAG_FINAL: usize =
+pub const crypto_secretstream_xchacha20poly1305_TAG_MESSAGE: u8 = 0;
+pub const crypto_secretstream_xchacha20poly1305_TAG_PUSH: u8 = 1;
+pub const crypto_secretstream_xchacha20poly1305_TAG_REKEY: u8 = 2;
+pub const crypto_secretstream_xchacha20poly1305_TAG_FINAL: u8 =
     crypto_secretstream_xchacha20poly1305_TAG_PUSH
         | crypto_secretstream_xchacha20poly1305_TAG_REKEY;
 
 #[repr(C)]
 #[derive(Copy)]
 pub struct crypto_secretstream_xchacha20poly1305_state {
-    k: [u8; crypto_stream_chacha20_ietf_KEYBYTES],
-    nonce: [u8; crypto_stream_chacha20_ietf_NONCEBYTES],
-    _pad: [u8; 8],
+    pub k: [u8; crypto_stream_chacha20_ietf_KEYBYTES],
+    pub nonce: [u8; crypto_stream_chacha20_ietf_NONCEBYTES],
+    pub _pad: [u8; 8],
 }
 
 impl Clone for crypto_secretstream_xchacha20poly1305_state {
