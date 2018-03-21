@@ -113,6 +113,11 @@ impl SecretStream {
         self.mode
     }
 
+    /// This method returns the stream header.
+    pub fn header(&self) -> &[u8] {
+        &self.header
+    }
+
     /// This method encrypts `msg` with the tag `tag` and the state
     /// and puts the cipher code in `out`.
     ///
