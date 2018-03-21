@@ -290,4 +290,71 @@ mod test {
         );
         assert_eq!(plain3.as_slice(), msg3.as_bytes());
     }
+
+    #[test]
+    fn test_push_pull_rekey_with_ad() {
+        let key = keygen();
+
+        let mut secret_stream = SecretStream::init_push(&key).unwrap();
+
+        let msg1 = "Hello World!";
+        let msg2 = "Secret Cipher";
+        let msg3 = "Zoop!";
+
+        let ad1 = "TestAD1";
+        let ad2 = "TestAD22";
+        let ad3 = "TestAD333";
+
+        let mut result1 = Vec::new();
+        secret_stream.push(
+            Tag::Message,
+            msg1.as_bytes(),
+            Some(ad1.as_bytes()),
+            &mut result1,
+        );
+
+        let mut result2 = Vec::new();
+        secret_stream.push(
+            Tag::Message,
+            msg2.as_bytes(),
+            Some(ad2.as_bytes()),
+            &mut result2,
+        );
+
+        secret_stream.rekey();
+
+        let mut result3 = Vec::new();
+        secret_stream.push(
+            Tag::Final,
+            msg3.as_bytes(),
+            Some(ad3.as_bytes()),
+            &mut result3,
+        );
+
+        let header = secret_stream.header();
+        let mut secret_stream = SecretStream::init_pull(&key, &header).unwrap();
+
+        let mut plain1 = Vec::new();
+        assert_eq!(
+            secret_stream.pull(&result1, Some(ad1.as_bytes()), &mut plain1),
+            Ok(Tag::Message)
+        );
+        assert_eq!(plain1.as_slice(), msg1.as_bytes());
+
+        let mut plain2 = Vec::new();
+        assert_eq!(
+            secret_stream.pull(&result2, Some(ad2.as_bytes()), &mut plain2),
+            Ok(Tag::Message)
+        );
+        assert_eq!(plain2.as_slice(), msg2.as_bytes());
+
+        secret_stream.rekey();
+
+        let mut plain3 = Vec::new();
+        assert_eq!(
+            secret_stream.pull(&result3, Some(ad3.as_bytes()), &mut plain3),
+            Ok(Tag::Final)
+        );
+        assert_eq!(plain3.as_slice(), msg3.as_bytes());
+    }
 }
