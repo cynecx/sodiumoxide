@@ -22,6 +22,12 @@ pub struct crypto_secretstream_xchacha20poly1305_state {
     _pad: [u8; 8],
 }
 
+impl Clone for crypto_secretstream_xchacha20poly1305_state {
+    fn clone(&self) -> crypto_secretstream_xchacha20poly1305_state {
+        *self
+    }
+}
+
 extern "C" {
     pub fn crypto_secretstream_xchacha20poly1305_keygen(key: *mut u8);
 
