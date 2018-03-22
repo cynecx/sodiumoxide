@@ -15,6 +15,8 @@ use ffi::{crypto_secretstream_xchacha20poly1305_ABYTES,
           crypto_secretstream_xchacha20poly1305_rekey,
           crypto_secretstream_xchacha20poly1305_state};
 
+#[cfg(not(feature = "std"))] use prelude::*;
+
 use std::ptr;
 use std::mem;
 
@@ -50,7 +52,14 @@ pub enum Tag {
 }
 
 type Header = [u8; crypto_secretstream_xchacha20poly1305_HEADERBYTES];
-type Key = [u8; crypto_secretstream_xchacha20poly1305_KEYBYTES];
+
+new_type! {
+    /// `Key` for stream encryption
+    ///
+    /// When a `Key` goes out of scope its contents
+    /// will be zeroed out
+    secret Key(crypto_secretstream_xchacha20poly1305_KEYBYTES);
+}
 
 /// A SecretStream is a high-level API which encrypts a sequence of messages,
 /// or a single message split into an arbitrary number of chunks,
@@ -63,18 +72,19 @@ pub struct SecretStream {
 }
 
 /// Generates a random key suitable for being used with SecretStream.
-pub fn keygen() -> Key {
-    let mut key: Key = Default::default();
+pub fn gen_key() -> Key {
+    let mut key: [u8; crypto_secretstream_xchacha20poly1305_KEYBYTES] =
+        Default::default();
     unsafe {
         crypto_secretstream_xchacha20poly1305_keygen(key.as_mut_ptr());
     }
-    key
+    Key(key)
 }
 
 impl SecretStream {
     /// This method constructs a new SecretStream in Push mode (encryption only)
     /// with a key `key`.
-    pub fn init_push(key: &[u8]) -> Option<Self> {
+    pub fn init_push(&Key(ref key): &Key) -> Option<Self> {
         if key.len() != crypto_secretstream_xchacha20poly1305_KEYBYTES {
             return None;
         }
@@ -96,7 +106,7 @@ impl SecretStream {
 
     /// This method constructs a new SecretStream in Pull mode
     /// (decryption only) with a key `key` and a stream header `header`.
-    pub fn init_pull(key: &[u8], header: &[u8]) -> Option<Self> {
+    pub fn init_pull(&Key(ref key): &Key, header: &[u8]) -> Option<Self> {
         if key.len() != crypto_secretstream_xchacha20poly1305_KEYBYTES {
             return None;
         }
@@ -235,7 +245,7 @@ mod test {
 
     #[test]
     fn test_push_pull_rekey() {
-        let key = keygen();
+        let key = gen_key();
 
         let mut secret_stream = SecretStream::init_push(&key).unwrap();
 
@@ -293,7 +303,7 @@ mod test {
 
     #[test]
     fn test_push_pull_rekey_with_ad() {
-        let key = keygen();
+        let key = gen_key();
 
         let mut secret_stream = SecretStream::init_push(&key).unwrap();
 
