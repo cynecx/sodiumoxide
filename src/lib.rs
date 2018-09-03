@@ -118,6 +118,7 @@ pub mod crypto {
     pub mod hash;
     pub mod generichash;
     pub mod secretbox;
+    pub mod secretstream;
     pub mod onetimeauth;
     pub mod pwhash;
     pub mod stream;
